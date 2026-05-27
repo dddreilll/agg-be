@@ -1,0 +1,45 @@
+import { z } from 'zod';
+
+/** Parse common truthy/falsey env strings into booleans, falling back to a default. */
+const booleanFromEnv = (defaultValue: boolean) =>
+  z.preprocess((value) => {
+    if (value === undefined || value === null || value === '') return defaultValue;
+    if (typeof value === 'boolean') return value;
+    return ['1', 'true', 'yes', 'on'].includes(String(value).trim().toLowerCase());
+  }, z.boolean());
+
+export const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  PORT: z.coerce.number().int().positive().default(3000),
+  LOG_LEVEL: z
+    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+    .default('info'),
+
+  // Redis backs both the idempotency cache and the BullMQ broker.
+  REDIS_URL: z.string().url().default('redis://localhost:6379'),
+
+  // PostgreSQL — primary relational store (menus, platform mappings, orders).
+  DATABASE_URL: z.string().url().default('postgres://dops:dops@localhost:5432/dops'),
+
+  // How long a processed order's dedupe marker is retained.
+  IDEMPOTENCY_TTL_SECONDS: z.coerce.number().int().positive().default(86_400),
+  // If Redis is unreachable during the dedupe check: accept the order anyway (true)
+  // or reject with 503 so the platform retries (false).
+  IDEMPOTENCY_FAIL_OPEN: booleanFromEnv(true),
+
+  WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5),
+});
+
+export type Env = z.infer<typeof envSchema>;
+
+/** Used by ConfigModule.forRoot({ validate }) — crashes the boot on bad config. */
+export function validateEnv(config: Record<string, unknown>): Env {
+  const parsed = envSchema.safeParse(config);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `  • ${issue.path.join('.') || '(root)'}: ${issue.message}`)
+      .join('\n');
+    throw new Error(`Invalid environment configuration:\n${details}`);
+  }
+  return parsed.data;
+}
