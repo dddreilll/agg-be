@@ -12,3 +12,13 @@ export const grabFoodWebhookSchema = z
   .passthrough();
 
 export type GrabFoodWebhook = z.infer<typeof grabFoodWebhookSchema>;
+
+/**
+ * Foodpanda's order webhook carries a unique `token` (UUID) at the top level; the
+ * dedupe/idempotency key is derived from it (`foodpanda:<token>`).
+ */
+export const foodpandaWebhookSchema = z
+  .object({ token: z.string().min(1) })
+  .passthrough();
+
+export type FoodpandaWebhook = z.infer<typeof foodpandaWebhookSchema>;

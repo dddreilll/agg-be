@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotImplementedException } from '@nestjs/common';
-import { grabFoodWebhookSchema } from './dto/webhook.schema';
+import { foodpandaWebhookSchema, grabFoodWebhookSchema } from './dto/webhook.schema';
 
 export const SUPPORTED_PLATFORMS = ['GRABFOOD', 'FOODPANDA', 'FB_CHATBOT'] as const;
 export type SupportedPlatform = (typeof SUPPORTED_PLATFORMS)[number];
@@ -20,7 +20,7 @@ type OrderIdExtractor = (raw: unknown) => string;
 /** Per-platform knowledge of where the native order id lives in the raw webhook. */
 const EXTRACTORS: Record<SupportedPlatform, OrderIdExtractor | null> = {
   GRABFOOD: (raw) => grabFoodWebhookSchema.parse(raw).orderID,
-  FOODPANDA: null, // TODO: implement when the Foodpanda integration lands
+  FOODPANDA: (raw) => foodpandaWebhookSchema.parse(raw).token,
   FB_CHATBOT: null, // TODO: implement when the FB-chatbot integration lands
 };
 

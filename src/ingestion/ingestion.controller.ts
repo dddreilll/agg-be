@@ -40,8 +40,9 @@ export class IngestionController {
   @ApiBody({
     type: GrabFoodOrderDto,
     description:
-      'Raw platform webhook payload (schema = the GrabFood Submit Order webhook). Stored verbatim; ' +
-      'only the order id is read at ingestion — full validation happens during translation.',
+      "Raw platform webhook payload. The body schema is the source platform's native webhook " +
+      '(GrabFood Submit Order or Foodpanda Dispatch Order). Stored verbatim; only the order id is ' +
+      'read at ingestion — full validation happens during translation.',
     examples: {
       grabfood: {
         summary: 'GrabFood Submit Order',
@@ -59,6 +60,34 @@ export class IngestionController {
             },
           ],
           price: { subtotal: 2550, total: 2075 },
+        },
+      },
+      foodpanda: {
+        summary: 'Foodpanda Dispatch Order',
+        value: {
+          token: '5f373562-591a-4db9-8609-7eec7880f28d',
+          code: 'n0s1-w0k1',
+          expeditionType: 'pickup',
+          payment: { status: 'paid', type: 'paid' },
+          platformRestaurant: { id: 'sq-abcd' },
+          products: [
+            {
+              name: 'Double Cheese Burger',
+              remoteCode: 'ID_FOR_DOUBLE_CHEESE_BURGER_ON_POS',
+              quantity: '1',
+              unitPrice: '6.42',
+              comment: 'No cheese please',
+              selectedToppings: [
+                {
+                  name: 'extra cheese',
+                  remoteCode: 'ID_FOR_EXTRA_CHEESE_ON_POS',
+                  price: '1.50',
+                  quantity: 1,
+                },
+              ],
+            },
+          ],
+          price: { grandTotal: '25.50' },
         },
       },
     },

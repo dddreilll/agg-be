@@ -51,8 +51,14 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new AllExceptionsFilter());
   // Fire lifecycle hooks (RedisModule.onApplicationShutdown, BullMQ close) on SIGTERM/SIGINT.
   app.enableShutdownHooks();
-
+  // Enable CORS using `CORS_ORIGIN` (env) or allow all origins by default.
   const config = app.get(ConfigService<Env, true>);
+  app.enableCors({
+    origin: "*",
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
   const port = config.get('PORT', { infer: true });
   await app.listen(port);
 
