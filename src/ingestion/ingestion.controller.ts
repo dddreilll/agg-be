@@ -6,10 +6,14 @@ import {
   Res,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { IngestionProducer } from '../queue/ingestion.producer';
+import { GrabFoodOrderDto } from './dto/grabfood-order.dto';
+import { AcceptedResponseDto, DuplicateResponseDto } from './dto/ingestion-responses.dto';
 import { IdempotencyInterceptor } from './idempotency.interceptor';
 
+@ApiTags('Ingestion')
 @Controller('webhooks')
 export class IngestionController {
   constructor(private readonly producer: IngestionProducer) {}
@@ -21,6 +25,59 @@ export class IngestionController {
    */
   @Post(':platform')
   @UseInterceptors(IdempotencyInterceptor)
+  @ApiOperation({
+    summary: 'Ingest a delivery-platform order webhook',
+    description:
+      'Validates + dedupes the webhook, acks in <200ms, and enqueues it for async translation, ' +
+      'persistence, and broadcast. Returns 202 for a new order or 200 for an idempotent replay.',
+  })
+  @ApiParam({
+    name: 'platform',
+    description: 'Source platform',
+    enum: ['grabfood', 'foodpanda', 'fb_chatbot'],
+    example: 'grabfood',
+  })
+  @ApiBody({
+    type: GrabFoodOrderDto,
+    description:
+      'Raw platform webhook payload (schema = the GrabFood Submit Order webhook). Stored verbatim; ' +
+      'only the order id is read at ingestion — full validation happens during translation.',
+    examples: {
+      grabfood: {
+        summary: 'GrabFood Submit Order',
+        value: {
+          orderID: '123-CYNKLPCVRN5',
+          merchantID: '1-CYNGRUNGSBCCC',
+          paymentType: 'CASH',
+          items: [
+            {
+              id: 'item-1',
+              quantity: 1,
+              price: 2550,
+              specifications: 'less sugar and chili',
+              modifiers: [{ id: 'modifier-1', price: 175, quantity: 1 }],
+            },
+          ],
+          price: { subtotal: 2550, total: 2075 },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 202,
+    description: 'Accepted and enqueued (new order).',
+    type: AcceptedResponseDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Duplicate — idempotent replay; not re-enqueued.',
+    type: DuplicateResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Unsupported platform or unparseable payload.' })
+  @ApiResponse({
+    status: 503,
+    description: 'Idempotency store unavailable (only when IDEMPOTENCY_FAIL_OPEN=false).',
+  })
   async ingest(@Req() req: Request, @Res() res: Response): Promise<void> {
     const parsed = req.parsedWebhook!;
 

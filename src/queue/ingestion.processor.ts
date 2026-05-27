@@ -3,6 +3,8 @@ import { Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type Job } from 'bullmq';
 import type { Env } from '../config/env.validation';
+import { OrderPersistenceService } from '../orders/order-persistence.service';
+import { KitchenGateway } from '../realtime/kitchen.gateway';
 import { TranslationService } from '../translation/translation.service';
 import { INGESTION_QUEUE, type IngestionJobData } from './jobs';
 
@@ -20,6 +22,8 @@ export class IngestionProcessor
   constructor(
     private readonly config: ConfigService<Env, true>,
     private readonly translation: TranslationService,
+    private readonly orders: OrderPersistenceService,
+    private readonly kitchen: KitchenGateway,
   ) {
     super();
   }
@@ -48,8 +52,16 @@ export class IngestionProcessor
     );
     this.logger.debug(JSON.stringify(canonical));
 
-    // TODO Task 3: persist the canonical order to PostgreSQL (idempotent on idempotency_key)
-    // TODO Task 4: broadcast the order to kitchen displays via the WebSocket gateway
+    // Task 3: persist the canonical order (idempotent on idempotency_key).
+    const result = await this.orders.persist(canonical, raw);
+
+    if (result.created) {
+      // Task 4: push the new order to the store's kitchen displays in real time.
+      this.kitchen.broadcastOrder(canonical);
+      this.logger.log(`persisted + broadcast order ${result.orderId} (${dedupeKey})`);
+    } else {
+      this.logger.log(`order ${dedupeKey} already persisted — skipped (no re-broadcast)`);
+    }
   }
 
   @OnWorkerEvent('completed')

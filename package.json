@@ -23,16 +23,22 @@
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.0.1",
+    "@nestjs/swagger": "^11.4.4",
     "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.0.1",
+    "@scalar/nestjs-api-reference": "^1.1.19",
     "bullmq": "^5.34.0",
     "dotenv": "^16.4.7",
     "helmet": "^8.0.0",
     "ioredis": "^5.4.2",
     "nestjs-pino": "^4.3.0",
+    "nestjs-zod": "^5.4.0",
     "pg": "^8.13.1",
     "pino-http": "^10.3.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.1",
     "typeorm": "^0.3.20",
     "zod": "^3.25.76"
   },
@@ -47,6 +53,7 @@
     "@types/supertest": "^6.0.2",
     "jest": "^29.7.0",
     "pino-pretty": "^13.0.0",
+    "socket.io-client": "^4.8.1",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
@@ -59,13 +66,19 @@
     "node": ">=20"
   },
   "jest": {
-    "moduleFileExtensions": ["js", "json", "ts"],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
-    "collectCoverageFrom": ["**/*.(t|j)s"],
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }

@@ -11,23 +11,26 @@ import { z } from 'zod';
  */
 export const grabFoodOrderSchema = z
   .object({
-    orderID: z.string().min(1),
-    merchantID: z.string().min(1),
-    paymentType: z.string().optional(), // "CASH" | "CASHLESS"
+    orderID: z.string().min(1).describe("GrabFood's order id; the dedupe/idempotency key is derived from it."),
+    merchantID: z.string().min(1).describe('GrabFood merchant id; resolved to our internal store.'),
+    paymentType: z.string().optional().describe('"CASH" or "CASHLESS"; mapped to our payment method.'),
     items: z
       .array(
         z.object({
-          id: z.string().min(1), // partner/merchant item id (our mapping key)
-          grabItemID: z.string().optional(), // Grab's catalog id (unused for mapping)
+          id: z.string().min(1).describe('Partner/merchant item id — our menu mapping key.'),
+          grabItemID: z.string().optional().describe("Grab's catalog id (not used for mapping)."),
           quantity: z.number().int().positive(),
-          price: z.number().int().nonnegative(), // unit price, minor units
+          price: z.number().int().nonnegative().describe('Unit price in minor currency units (cents).'),
           tax: z.number().int().nonnegative().optional(),
-          specifications: z.string().optional(), // free-text instructions → notes
+          specifications: z
+            .string()
+            .optional()
+            .describe('Free-text preparation instructions → canonical item notes.'),
           modifiers: z
             .array(
               z.object({
-                id: z.string().min(1),
-                price: z.number().int().nonnegative(), // unit price, minor units
+                id: z.string().min(1).describe('Partner modifier id — our modifier mapping key.'),
+                price: z.number().int().nonnegative().describe('Unit price in minor units (cents).'),
                 quantity: z.number().int().nonnegative().default(1),
                 tax: z.number().int().nonnegative().optional(),
               }),
@@ -35,15 +38,17 @@ export const grabFoodOrderSchema = z
             .default([]),
         }),
       )
-      .min(1),
-    // Authoritative order totals (minor units). We take subtotal + total from here.
+      .min(1)
+      .describe('Ordered line items.'),
     price: z
       .object({
-        subtotal: z.number().int().nonnegative(),
-        total: z.number().int().nonnegative(),
+        subtotal: z.number().int().nonnegative().describe('Order subtotal, minor units.'),
+        total: z.number().int().nonnegative().describe('Authoritative grand total, minor units.'),
       })
-      .passthrough(),
+      .passthrough()
+      .describe('Authoritative order totals (minor units); we take subtotal + total from here.'),
   })
-  .passthrough();
+  .passthrough()
+  .describe('GrabFood Submit Order webhook payload (developer.grab.com, GrabFood API v1.1.3).');
 
 export type GrabFoodOrder = z.infer<typeof grabFoodOrderSchema>;

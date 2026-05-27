@@ -2,6 +2,8 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Env } from '../config/env.validation';
+import { OrdersModule } from '../orders/orders.module';
+import { RealtimeModule } from '../realtime/realtime.module';
 import { buildBullConnection } from '../redis/redis.factory';
 import { TranslationModule } from '../translation/translation.module';
 import { IngestionProcessor } from './ingestion.processor';
@@ -18,6 +20,8 @@ import { INGESTION_QUEUE } from './jobs';
     }),
     BullModule.registerQueue({ name: INGESTION_QUEUE }),
     TranslationModule,
+    OrdersModule,
+    RealtimeModule,
   ],
   providers: [IngestionProducer, IngestionProcessor],
   exports: [IngestionProducer],
