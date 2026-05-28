@@ -10,7 +10,8 @@ import {
   type WsResponse,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import type { CanonicalOrder } from '../translation/canonical.types';
+import { Order } from '../database/entities/order.entity';
+import { serializeOrder } from '../orders/dto/order-response.dto';
 
 /** Kitchen displays subscribe per store; orders are emitted only to that store's room. */
 const storeRoom = (storeId: string): string => `store:${storeId}`;
@@ -54,10 +55,17 @@ export class KitchenGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   /** Push a newly-accepted order to every kitchen display subscribed to its store. */
-  broadcastOrder(order: CanonicalOrder): void {
-    const room = storeRoom(order.order_details.internal_store_id);
-    this.server.to(room).emit('order.incoming', order);
-    this.logger.log(`broadcast order ${order.meta.order_id} → ${room}`);
+  broadcastOrder(order: Order): void {
+    const room = storeRoom(order.storeId);
+    this.server.to(room).emit('order.incoming', serializeOrder(order));
+    this.logger.log(`broadcast order ${order.id} → ${room}`);
+  }
+
+  /** Notify kitchen displays that an order's status changed. */
+  broadcastStatusUpdate(storeId: string, orderId: string, status: string): void {
+    const room = storeRoom(storeId);
+    this.server.to(room).emit('order.status_updated', { orderId, status });
+    this.logger.log(`broadcast status_updated order ${orderId} → ${status} (${room})`);
   }
 
   private storeIdFromHandshake(client: Socket): string | undefined {

@@ -4,9 +4,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { LoggerModule } from 'nestjs-pino';
 import { type Env, validateEnv } from './config/env.validation';
+import { CatalogModule } from './catalog/catalog.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { IngestionModule } from './ingestion/ingestion.module';
+import { OrdersModule } from './orders/orders.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { RedisModule } from './redis/redis.module';
 
@@ -39,6 +41,8 @@ import { RedisModule } from './redis/redis.module';
     RedisModule,
     RealtimeModule,
     IngestionModule,
+    OrdersModule,
+    CatalogModule,
     HealthModule,
   ],
 })

@@ -32,10 +32,17 @@ Roughly in dependency order.
   completed / cancelled, merchant-initiated. The heart of "solving tablet hell."
 - [ ] **Outbound status updates back to platforms** — confirm/reject/ready calls
   to GrabFood (and others). Closes the loop. Requires outbound auth/token handling.
-- [ ] **More platform adapters** — Foodpanda, FB Messenger. Only GrabFood exists;
-  the second adapter is the real test of the translation abstraction.
-- [ ] **Menu / catalog sync & 86'ing** — push availability/menu out to platforms.
-- [ ] **Dispatch / rider tracking.**
+- [ ] **Merchant Menu / Product Management** — merchants can create, edit, and
+  delete products scoped to each connected platform. Each platform has its own
+  product schema (GrabFood, Foodpanda, etc.), so products are stored
+  canonically and translated per-platform on sync.
+  - [ ] Product CRUD API with per-platform availability flags.
+  - [ ] Platform-specific field mapping (name, description, price, modifiers,
+    images) per adapter.
+  - [ ] **86'ing** — mark items temporarily unavailable and push the change out
+    to all connected platforms in real time.
+  - [ ] Menu sync — push full catalog or incremental changes to platforms on
+    demand or on a schedule.
 - [ ] **Frontend** — merchant dashboard / kitchen display consuming WS + read API.
 
 ## 2. Robustness / correctness
@@ -75,5 +82,6 @@ Roughly in dependency order.
 3. Webhook signature verification (#2) — cheap, closes a real security hole.
 4. Outbound status updates (#1) — closes the platform loop.
 5. Second platform adapter (#1) — proves the abstraction.
+6. Merchant Menu / Product Management (#1) — canonical product store + per-platform sync.
 
 The frontend can start in parallel once the Read API exists.

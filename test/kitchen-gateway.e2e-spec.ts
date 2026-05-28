@@ -15,6 +15,7 @@ function sampleOrder(storeId: string, orderId: string): CanonicalOrder {
     meta: {
       platform: 'GRABFOOD',
       order_id: orderId,
+      short_order_id: orderId,
       idempotency_key: `grabfood:${orderId}`,
       received_at: '2026-05-27T01:05:02Z',
     },
@@ -72,7 +73,7 @@ describe('KitchenGateway (e2e)', () => {
       bReceived = true;
     });
 
-    gateway.broadcastOrder(sampleOrder(STORE_A, orderId));
+    gateway.broadcastOrder(sampleOrder(STORE_A, orderId), orderId);
 
     const order = await Promise.race([
       receivedByA,

@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 
 @Entity('orders')
@@ -15,6 +15,10 @@ export class Order {
 
   @Column({ name: 'external_order_id' })
   externalOrderId!: string;
+
+  /** Short human-readable order ID displayed on kitchen screens, e.g. `CYNK`. */
+  @Column({ name: 'short_order_id', type: 'varchar' })
+  shortOrderId!: string;
 
   @Column({ name: 'store_id', type: 'uuid' })
   storeId!: string;
@@ -43,6 +47,9 @@ export class Order {
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt!: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
 
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   items!: OrderItem[];

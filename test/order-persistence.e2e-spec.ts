@@ -20,6 +20,7 @@ function makeCanonical(idempotencyKey: string): CanonicalOrder {
     meta: {
       platform: 'GRABFOOD',
       order_id: idempotencyKey.split(':')[1] ?? idempotencyKey,
+      short_order_id: idempotencyKey.split(':')[1] ?? idempotencyKey,
       idempotency_key: idempotencyKey,
       received_at: '2026-05-27T01:05:02Z',
     },

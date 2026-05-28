@@ -57,8 +57,8 @@ export class IngestionProcessor
 
     if (result.created) {
       // Task 4: push the new order to the store's kitchen displays in real time.
-      this.kitchen.broadcastOrder(canonical);
-      this.logger.log(`persisted + broadcast order ${result.orderId} (${dedupeKey})`);
+      this.kitchen.broadcastOrder(result.order!);
+      this.logger.log(`persisted + broadcast order ${result.order!.id} (${dedupeKey})`);
     } else {
       this.logger.log(`order ${dedupeKey} already persisted — skipped (no re-broadcast)`);
     }

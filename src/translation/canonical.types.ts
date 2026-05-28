@@ -1,5 +1,26 @@
+export type CanonicalPlatform = 'GRABFOOD' | 'FOODPANDA';
+export const PLATFORMS: CanonicalPlatform[] = ['GRABFOOD', 'FOODPANDA'];
+
 export type CanonicalPaymentMethod = 'ONLINE_PAYMENT' | 'CASH_ON_DELIVERY';
-export type CanonicalOrderStatus = 'PENDING_ACCEPTANCE';
+
+export type CanonicalOrderStatus =
+  | 'PENDING_ACCEPTANCE'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'PREPARING'
+  | 'READY_FOR_PICKUP'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+export const ORDER_STATUSES: CanonicalOrderStatus[] = [
+  'PENDING_ACCEPTANCE',
+  'ACCEPTED',
+  'REJECTED',
+  'PREPARING',
+  'READY_FOR_PICKUP',
+  'COMPLETED',
+  'CANCELLED',
+];
 
 export interface CanonicalCustomization {
   internal_modifier_id: string;

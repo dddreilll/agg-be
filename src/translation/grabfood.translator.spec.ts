@@ -53,6 +53,7 @@ describe('translateGrabFoodOrder', () => {
       meta: {
         platform: 'GRABFOOD',
         order_id: '123-CYNKLPCVRN5',
+        short_order_id: 'GF-123',
         idempotency_key: 'grabfood:123-CYNKLPCVRN5',
         received_at: '2026-05-27T01:05:02Z',
       },

@@ -8,7 +8,7 @@ const PG_UNIQUE_VIOLATION = '23505';
 
 export interface PersistResult {
   created: boolean;
-  orderId?: string;
+  order?: Order;
 }
 
 @Injectable()
@@ -29,6 +29,7 @@ export class OrderPersistenceService {
       idempotencyKey: canonical.meta.idempotency_key,
       platform: canonical.meta.platform,
       externalOrderId: canonical.meta.order_id,
+      shortOrderId: canonical.meta.short_order_id,
       storeId: details.internal_store_id,
       status: details.status,
       paymentMethod: details.payment_method,
@@ -55,7 +56,7 @@ export class OrderPersistenceService {
     try {
       const saved = await this.orders.save(order);
       this.logger.log(`persisted order ${saved.id} (${order.idempotencyKey})`);
-      return { created: true, orderId: saved.id };
+      return { created: true, order: saved };
     } catch (err) {
       if (
         err instanceof QueryFailedError &&

@@ -67,6 +67,7 @@ describe('translateFoodpandaOrder', () => {
       meta: {
         platform: 'FOODPANDA',
         order_id: '5f373562-591a-4db9-8609-7eec7880f28d',
+        short_order_id: 'n0s1-w0k1',
         idempotency_key: 'foodpanda:5f373562-591a-4db9-8609-7eec7880f28d',
         received_at: '2026-05-27T03:00:00Z',
       },

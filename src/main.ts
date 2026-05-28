@@ -5,7 +5,7 @@ import { NestFactory } from '@nestjs/core';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
-import { cleanupOpenApiDoc } from 'nestjs-zod';
+import { cleanupOpenApiDoc, ZodValidationPipe } from 'nestjs-zod';
 import type { Request, Response } from 'express';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
@@ -31,6 +31,8 @@ async function bootstrap(): Promise<void> {
     )
     .setVersion('0.1.0')
     .addTag('Ingestion', 'Inbound delivery-platform order webhooks')
+    .addTag('Orders', 'Order read API and merchant status lifecycle')
+    .addTag('Catalog', 'Merchant menu and product management')
     .addTag('Health', 'Liveness & readiness probes')
     .build();
   // Schemas come from our zod definitions via nestjs-zod DTOs; cleanupOpenApiDoc
@@ -46,6 +48,7 @@ async function bootstrap(): Promise<void> {
   // Scalar API reference UI. Mounted before helmet so its CDN/inline assets aren't CSP-blocked.
   app.use('/reference', apiReference({ content: openApiDocument }));
 
+  app.useGlobalPipes(new ZodValidationPipe());
   app.use(helmet());
   app.useWebSocketAdapter(new IoAdapter(app));
   app.useGlobalFilters(new AllExceptionsFilter());
