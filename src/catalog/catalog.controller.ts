@@ -22,6 +22,7 @@ import {
   CategoryResponseDto,
   PlatformLinkResponseDto,
   ProductResponseDto,
+  SimulatorProductResponseDto,
 } from './dto/catalog-response.dto';
 
 @ApiTags('Catalog')
@@ -84,6 +85,21 @@ export class CatalogController {
   @ApiResponse({ status: 201, type: ProductResponseDto, description: 'Product created.' })
   createProduct(@Body() dto: CreateProductDto) {
     return this.catalog.createProduct(dto);
+  }
+
+  @Get('products/by-platform')
+  @ApiOperation({
+    summary: 'List products for a specific platform and store (simulator menu)',
+    description: 'Returns all products that have a platform_mapping for the given platformName and external store id, with the platform-specific externalId attached.',
+  })
+  @ApiQuery({ name: 'platformName', required: true, type: String, description: 'Platform name, e.g. GRABFOOD or grabfood' })
+  @ApiQuery({ name: 'externalStoreId', required: true, type: String, description: 'Platform-native store id from platform_mappings' })
+  @ApiResponse({ status: 200, type: [SimulatorProductResponseDto], description: 'Products with their platform external id.' })
+  listProductsForPlatform(
+    @Query('platformName') platformName: string,
+    @Query('externalStoreId') externalStoreId: string,
+  ) {
+    return this.catalog.listProductsForPlatform(platformName, externalStoreId);
   }
 
   @Get('products/:id')

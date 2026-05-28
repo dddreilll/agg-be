@@ -36,6 +36,11 @@ export const platformLinkResponseSchema = z.object({
   lastSyncedAt: z.string().datetime().nullable(),
 });
 
+export const simulatorProductResponseSchema = productResponseSchema.extend({
+  externalId: z.string(),
+});
+
 export class CategoryResponseDto extends createZodDto(categoryResponseSchema) {}
 export class ProductResponseDto extends createZodDto(productResponseSchema) {}
 export class PlatformLinkResponseDto extends createZodDto(platformLinkResponseSchema) {}
+export class SimulatorProductResponseDto extends createZodDto(simulatorProductResponseSchema) {}

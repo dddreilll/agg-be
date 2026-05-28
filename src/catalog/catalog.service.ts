@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Category } from '../database/entities/category.entity';
 import { PlatformMapping } from '../database/entities/platform-mapping.entity';
 import { Product } from '../database/entities/product.entity';
@@ -71,6 +71,41 @@ export class CatalogService {
   async deleteProduct(id: string): Promise<void> {
     const result = await this.products.delete(id);
     if (!result.affected) throw new NotFoundException(`Product ${id} not found`);
+  }
+
+  async listProductsForPlatform(
+    platformName: string,
+    externalStoreId: string,
+  ): Promise<Array<{ id: string; externalId: string; name: string; description: string | null; sku: string | null; basePriceCents: number; isAvailable: boolean; imageUrl: string | null; categoryId: string | null; createdAt: Date; updatedAt: Date }>> {
+    const storeMapping = await this.mappings
+      .createQueryBuilder('pm')
+      .where('pm.platform_name = :platform', { platform: platformName.toUpperCase() })
+      .andWhere('pm.entity_type = :type', { type: 'STORE' })
+      .andWhere("pm.platform_metadata ->> 'external_id' = :extId", { extId: externalStoreId })
+      .getOne();
+
+    if (!storeMapping) return [];
+
+    const productMappings = await this.mappings.find({
+      where: {
+        entityType: 'PRODUCT',
+        platformName: platformName.toUpperCase(),
+        storeId: storeMapping.internalEntityId,
+      },
+    });
+
+    if (productMappings.length === 0) return [];
+
+    const productIds = productMappings.map((pm) => pm.internalEntityId);
+    const products = await this.products.findBy({ id: In(productIds) });
+
+    return products.map((p) => ({
+      ...p,
+      externalId:
+        (productMappings.find((pm) => pm.internalEntityId === p.id)?.platformMetadata?.[
+          'external_id'
+        ] as string) ?? '',
+    }));
   }
 
   // ── Platform linking ─────────────────────────────────────────────────────────
