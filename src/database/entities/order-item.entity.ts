@@ -3,11 +3,9 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Order } from './order.entity';
-import { OrderItemModifier } from './order-item-modifier.entity';
 
 @Entity('order_items')
 export class OrderItem {
@@ -36,7 +34,4 @@ export class OrderItem {
 
   @Column({ type: 'int', default: 0 })
   position!: number;
-
-  @OneToMany(() => OrderItemModifier, (modifier) => modifier.orderItem, { cascade: true })
-  modifiers!: OrderItemModifier[];
 }

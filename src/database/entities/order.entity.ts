@@ -32,9 +32,6 @@ export class Order {
   @Column({ name: 'subtotal_cents', type: 'int' })
   subtotalCents!: number;
 
-  @Column({ name: 'modifier_total_cents', type: 'int' })
-  modifierTotalCents!: number;
-
   @Column({ name: 'grand_total_cents', type: 'int' })
   grandTotalCents!: number;
 

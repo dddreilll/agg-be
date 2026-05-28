@@ -54,35 +54,6 @@ export class InitSchema1779860000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      CREATE TABLE modifier_groups (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
-        name VARCHAR(100) NOT NULL,
-        min_selection INT DEFAULT 0,
-        max_selection INT DEFAULT 1,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    await queryRunner.query(`
-      CREATE TABLE modifiers (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        modifier_group_id UUID REFERENCES modifier_groups(id) ON DELETE CASCADE,
-        name VARCHAR(100) NOT NULL,
-        price_cents INT DEFAULT 0,
-        is_available BOOLEAN DEFAULT true
-      );
-    `);
-
-    await queryRunner.query(`
-      CREATE TABLE product_modifier_groups (
-        product_id UUID REFERENCES products(id) ON DELETE CASCADE,
-        modifier_group_id UUID REFERENCES modifier_groups(id) ON DELETE CASCADE,
-        PRIMARY KEY (product_id, modifier_group_id)
-      );
-    `);
-
-    await queryRunner.query(`
       CREATE TABLE platform_mappings (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
@@ -109,9 +80,6 @@ export class InitSchema1779860000000 implements MigrationInterface {
 
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS platform_mappings CASCADE;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS product_modifier_groups CASCADE;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS modifiers CASCADE;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS modifier_groups CASCADE;`);
     await queryRunner.query(`DROP TABLE IF EXISTS products CASCADE;`);
     await queryRunner.query(`DROP TABLE IF EXISTS categories CASCADE;`);
     await queryRunner.query(`DROP TABLE IF EXISTS stores CASCADE;`);

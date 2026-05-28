@@ -1,5 +1,4 @@
 import type {
-  CanonicalCustomization,
   CanonicalItem,
   CanonicalOrder,
   CanonicalPaymentMethod,
@@ -41,10 +40,10 @@ function mappingKey(remoteCode: string | null | undefined, platformId: string | 
 
 /**
  * Translate a validated Foodpanda order payload into the canonical shape.
- * Product/modifier internal ids + names are resolved via the injected resolver,
- * keyed on the merchant/POS `remoteCode` (so the canonical name is our catalog's,
- * consistent across platforms). Foodpanda has no items subtotal, so we sum it from
- * the line items; the grand total comes from its authoritative `price.grandTotal`.
+ * Product internal ids + names are resolved via the injected resolver,
+ * keyed on the merchant/POS `remoteCode`. Foodpanda has no items subtotal,
+ * so we sum it from the line items; the grand total comes from its authoritative
+ * `price.grandTotal`.
  */
 export async function translateFoodpandaOrder(
   order: FoodpandaOrder,
@@ -54,7 +53,6 @@ export async function translateFoodpandaOrder(
   const internalStoreId = await resolver.resolveStoreId(PLATFORM, order.platformRestaurant.id);
 
   let subtotalCents = 0;
-  let modifierTotalCents = 0;
   const items: CanonicalItem[] = [];
 
   for (const product of order.products) {
@@ -63,28 +61,12 @@ export async function translateFoodpandaOrder(
     const unitPriceCents = toCents(product.unitPrice);
     subtotalCents += unitPriceCents * quantity;
 
-    const customizations: CanonicalCustomization[] = [];
-    for (const topping of product.selectedToppings) {
-      const modifier = await resolver.resolveModifier(
-        PLATFORM,
-        mappingKey(topping.remoteCode, topping.id),
-      );
-      const addedPriceCents = toCents(topping.price);
-      customizations.push({
-        internal_modifier_id: modifier.id,
-        modifier_name: modifier.name,
-        added_price_cents: addedPriceCents,
-      });
-      modifierTotalCents += addedPriceCents * toQuantity(topping.quantity);
-    }
-
     items.push({
       internal_product_id: resolved.id,
       product_name: resolved.name,
       quantity,
       unit_price_cents: unitPriceCents,
       ...(product.comment ? { notes: product.comment } : {}),
-      customizations,
     });
   }
 
@@ -104,7 +86,6 @@ export async function translateFoodpandaOrder(
         PAYMENT_METHOD_MAP[(order.payment?.status ?? '').toUpperCase()] ?? 'ONLINE_PAYMENT',
       financials: {
         subtotal_cents: subtotalCents,
-        modifier_total_cents: modifierTotalCents,
         grand_total_cents: toCents(order.price.grandTotal),
       },
       items,

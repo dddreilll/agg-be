@@ -20,7 +20,6 @@ export class CreateOrders1779870000000 implements MigrationInterface {
         status VARCHAR(50) NOT NULL,
         payment_method VARCHAR(50) NOT NULL,
         subtotal_cents INT NOT NULL,
-        modifier_total_cents INT NOT NULL,
         grand_total_cents INT NOT NULL,
         received_at TIMESTAMP WITH TIME ZONE NOT NULL,
         raw_payload JSONB,
@@ -43,23 +42,9 @@ export class CreateOrders1779870000000 implements MigrationInterface {
       );
     `);
     await queryRunner.query(`CREATE INDEX idx_order_items_order ON order_items (order_id);`);
-
-    await queryRunner.query(`
-      CREATE TABLE order_item_modifiers (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        order_item_id UUID NOT NULL REFERENCES order_items(id) ON DELETE CASCADE,
-        modifier_id UUID REFERENCES modifiers(id) ON DELETE SET NULL,
-        modifier_name VARCHAR(255) NOT NULL,
-        added_price_cents INT NOT NULL
-      );
-    `);
-    await queryRunner.query(
-      `CREATE INDEX idx_order_item_modifiers_item ON order_item_modifiers (order_item_id);`,
-    );
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS order_item_modifiers CASCADE;`);
     await queryRunner.query(`DROP TABLE IF EXISTS order_items CASCADE;`);
     await queryRunner.query(`DROP TABLE IF EXISTS orders CASCADE;`);
   }

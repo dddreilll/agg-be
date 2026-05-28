@@ -11,5 +11,4 @@ export interface ResolvedEntity {
 export interface EntityResolver {
   resolveStoreId(platform: string, externalMerchantId: string): Promise<string>;
   resolveProduct(platform: string, externalProductId: string): Promise<ResolvedEntity>;
-  resolveModifier(platform: string, externalModifierId: string): Promise<ResolvedEntity>;
 }

@@ -61,25 +61,6 @@ export const foodpandaOrderSchema = z
             unitPrice: moneyString.describe('Per-unit price as a decimal string.'),
             paidPrice: moneyString.optional().describe('Line price actually paid (decimal string).'),
             comment: z.string().optional().describe('Per-item note → canonical item notes.'),
-            selectedToppings: z
-              .array(
-                z
-                  .object({
-                    id: z.string().optional(),
-                    remoteCode: z
-                      .string()
-                      .min(1)
-                      .nullish()
-                      .describe('Merchant/POS modifier id — our modifier mapping key (may be null; falls back to platform id).'),
-                    sku: z.string().optional(),
-                    name: z.string().optional(),
-                    price: moneyString.describe('Per-unit topping price, decimal string.'),
-                    quantity: quantity.default(1),
-                  })
-                  .passthrough(),
-              )
-              .default([])
-              .describe('Selected modifiers/toppings for this product.'),
           })
           .passthrough(),
       )

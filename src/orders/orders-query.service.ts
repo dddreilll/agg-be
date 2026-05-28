@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../database/entities/order.entity';
 import { OrderItem } from '../database/entities/order-item.entity';
-import { OrderItemModifier } from '../database/entities/order-item-modifier.entity';
 import type { CanonicalOrderStatus } from '../translation/canonical.types';
 import type { ListOrdersDto } from './dto/list-orders.dto';
 
@@ -17,7 +16,6 @@ export class OrdersQueryService {
   constructor(
     @InjectRepository(Order) private readonly orders: Repository<Order>,
     @InjectRepository(OrderItem) private readonly orderItems: Repository<OrderItem>,
-    @InjectRepository(OrderItemModifier) private readonly modifiers: Repository<OrderItemModifier>,
   ) {}
 
   async list(query: ListOrdersDto): Promise<PaginatedOrders> {
@@ -25,7 +23,6 @@ export class OrdersQueryService {
     const qb = this.orders
       .createQueryBuilder('o')
       .leftJoinAndSelect('o.items', 'item')
-      .leftJoinAndSelect('item.modifiers', 'mod')
       .orderBy('o.receivedAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
@@ -43,7 +40,7 @@ export class OrdersQueryService {
   async findOne(id: string): Promise<Order> {
     const order = await this.orders.findOne({
       where: { id },
-      relations: { items: { modifiers: true } },
+      relations: { items: true },
     });
     if (!order) throw new NotFoundException(`Order ${id} not found`);
     return order;

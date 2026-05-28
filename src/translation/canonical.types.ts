@@ -22,24 +22,16 @@ export const ORDER_STATUSES: CanonicalOrderStatus[] = [
   'CANCELLED',
 ];
 
-export interface CanonicalCustomization {
-  internal_modifier_id: string;
-  modifier_name: string;
-  added_price_cents: number;
-}
-
 export interface CanonicalItem {
   internal_product_id: string;
   product_name: string;
   quantity: number;
   unit_price_cents: number;
   notes?: string;
-  customizations: CanonicalCustomization[];
 }
 
 export interface CanonicalFinancials {
   subtotal_cents: number;
-  modifier_total_cents: number;
   grand_total_cents: number;
 }
 

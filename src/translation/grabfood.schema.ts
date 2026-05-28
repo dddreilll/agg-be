@@ -27,16 +27,6 @@ export const grabFoodOrderSchema = z
             .string()
             .optional()
             .describe('Free-text preparation instructions → canonical item notes.'),
-          modifiers: z
-            .array(
-              z.object({
-                id: z.string().min(1).describe('Partner modifier id — our modifier mapping key.'),
-                price: z.number().int().nonnegative().describe('Unit price in minor units (cents).'),
-                quantity: z.number().int().nonnegative().default(1),
-                tax: z.number().int().nonnegative().optional(),
-              }),
-            )
-            .default([]),
         }),
       )
       .min(1)

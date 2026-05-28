@@ -18,7 +18,7 @@ export class OrderPersistenceService {
   constructor(@InjectRepository(Order) private readonly orders: Repository<Order>) {}
 
   /**
-   * Persist a canonical order with its items + modifiers in one cascaded insert.
+   * Persist a canonical order with its items in one cascaded insert.
    * Idempotent: a duplicate `idempotency_key` hits the UNIQUE constraint and is
    * treated as already-persisted (created: false) rather than an error.
    */
@@ -34,7 +34,6 @@ export class OrderPersistenceService {
       status: details.status,
       paymentMethod: details.payment_method,
       subtotalCents: details.financials.subtotal_cents,
-      modifierTotalCents: details.financials.modifier_total_cents,
       grandTotalCents: details.financials.grand_total_cents,
       receivedAt: new Date(canonical.meta.received_at),
       rawPayload,
@@ -45,11 +44,6 @@ export class OrderPersistenceService {
         unitPriceCents: item.unit_price_cents,
         notes: item.notes ?? null,
         position,
-        modifiers: item.customizations.map((customization) => ({
-          modifierId: customization.internal_modifier_id,
-          modifierName: customization.modifier_name,
-          addedPriceCents: customization.added_price_cents,
-        })),
       })),
     });
 
