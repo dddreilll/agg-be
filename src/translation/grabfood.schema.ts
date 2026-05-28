@@ -12,6 +12,7 @@ import { z } from 'zod';
 export const grabFoodOrderSchema = z
   .object({
     orderID: z.string().min(1).describe("GrabFood's order id; the dedupe/idempotency key is derived from it."),
+    shortOrderNumber: z.string().optional().describe('Human-readable short reference shown to the customer (e.g. "GF-AB12").'),
     merchantID: z.string().min(1).describe('GrabFood merchant id; resolved to our internal store.'),
     paymentType: z.string().optional().describe('"CASH" or "CASHLESS"; mapped to our payment method.'),
     items: z

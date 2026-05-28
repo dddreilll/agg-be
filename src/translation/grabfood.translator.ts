@@ -62,6 +62,7 @@ export async function translateGrabFoodOrder(
     meta: {
       platform: PLATFORM,
       order_id: order.orderID,
+      short_order_id: order.shortOrderNumber ?? `GF-${order.orderID.slice(-4)}`,
       idempotency_key: meta.idempotencyKey,
       received_at: meta.receivedAt,
     },

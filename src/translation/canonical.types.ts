@@ -28,6 +28,7 @@ export interface CanonicalOrder {
   meta: {
     platform: string;
     order_id: string;
+    short_order_id: string;
     idempotency_key: string;
     received_at: string;
   };

@@ -93,6 +93,7 @@ export async function translateFoodpandaOrder(
     meta: {
       platform: PLATFORM,
       order_id: order.token,
+      short_order_id: order.code ?? order.token.slice(0, 8),
       idempotency_key: meta.idempotencyKey,
       received_at: meta.receivedAt,
     },
