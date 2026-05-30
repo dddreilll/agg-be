@@ -4,6 +4,7 @@ import { In, Repository } from 'typeorm';
 import { Category } from '../database/entities/category.entity';
 import { PlatformMapping } from '../database/entities/platform-mapping.entity';
 import { Product } from '../database/entities/product.entity';
+import { Store } from '../database/entities/store.entity';
 import type { CreateCategoryDto } from './dto/create-category.dto';
 import type { CreateProductDto } from './dto/create-product.dto';
 import type { LinkPlatformDto } from './dto/link-platform.dto';
@@ -16,7 +17,18 @@ export class CatalogService {
     @InjectRepository(Product) private readonly products: Repository<Product>,
     @InjectRepository(Category) private readonly categories: Repository<Category>,
     @InjectRepository(PlatformMapping) private readonly mappings: Repository<PlatformMapping>,
+    @InjectRepository(Store) private readonly stores: Repository<Store>,
   ) {}
+
+  // ── Stores ───────────────────────────────────────────────────────────────────
+
+  listStores(): Promise<Pick<Store, 'id' | 'name' | 'location'>[]> {
+    return this.stores.find({
+      where: { isActive: true },
+      select: { id: true, name: true, location: true },
+      order: { name: 'ASC' },
+    });
+  }
 
   // ── Categories ──────────────────────────────────────────────────────────────
 

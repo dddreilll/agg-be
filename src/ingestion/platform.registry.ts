@@ -21,7 +21,13 @@ type OrderIdExtractor = (raw: unknown) => string;
 const EXTRACTORS: Record<SupportedPlatform, OrderIdExtractor | null> = {
   GRABFOOD: (raw) => grabFoodWebhookSchema.parse(raw).orderID,
   FOODPANDA: (raw) => foodpandaWebhookSchema.parse(raw).token,
-  FB_CHATBOT: null, // TODO: implement when the FB-chatbot integration lands
+  FB_CHATBOT: (raw) => {
+    const p = raw as { orderId?: unknown };
+    if (typeof p.orderId !== 'string' || !p.orderId) {
+      throw new Error('Missing or invalid orderId in fb_chatbot payload');
+    }
+    return p.orderId;
+  },
 };
 
 @Injectable()

@@ -28,6 +28,10 @@ export const envSchema = z.object({
   IDEMPOTENCY_FAIL_OPEN: booleanFromEnv(true),
 
   WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5),
+
+  // Optional: required only when the /parse endpoint is called.
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
 });
 
 export type Env = z.infer<typeof envSchema>;

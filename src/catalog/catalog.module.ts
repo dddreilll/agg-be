@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Category } from '../database/entities/category.entity';
 import { PlatformMapping } from '../database/entities/platform-mapping.entity';
 import { Product } from '../database/entities/product.entity';
+import { Store } from '../database/entities/store.entity';
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from './catalog.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, Category, PlatformMapping])],
+  imports: [TypeOrmModule.forFeature([Product, Category, PlatformMapping, Store])],
   controllers: [CatalogController],
   providers: [CatalogService],
   exports: [CatalogService],

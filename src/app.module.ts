@@ -6,6 +6,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { type Env, validateEnv } from './config/env.validation';
 import { CatalogModule } from './catalog/catalog.module';
 import { DatabaseModule } from './database/database.module';
+import { ParserModule } from './parser/parser.module';
 import { HealthModule } from './health/health.module';
 import { IngestionModule } from './ingestion/ingestion.module';
 import { OrdersModule } from './orders/orders.module';
@@ -43,6 +44,7 @@ import { RedisModule } from './redis/redis.module';
     IngestionModule,
     OrdersModule,
     CatalogModule,
+    ParserModule,
     HealthModule,
   ],
 })

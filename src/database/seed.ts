@@ -25,6 +25,7 @@ async function seed(): Promise<void> {
         {
           id: PRODUCT_ID,
           sku: 'GRAB-CHICK-1PC',
+          productCode: 'CHK1',
           name: '1-pc Spicy Chicken Meal',
           basePriceCents: 13000,
           isAvailable: true,
@@ -37,6 +38,7 @@ async function seed(): Promise<void> {
         {
           id: FP_PRODUCT_ID,
           sku: 'FP-DBL-CHEESE',
+          productCode: 'BRG1',
           name: 'Double Cheese Burger',
           basePriceCents: 642,
           isAvailable: true,

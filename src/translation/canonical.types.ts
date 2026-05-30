@@ -1,5 +1,5 @@
-export type CanonicalPlatform = 'GRABFOOD' | 'FOODPANDA';
-export const PLATFORMS: CanonicalPlatform[] = ['GRABFOOD', 'FOODPANDA'];
+export type CanonicalPlatform = 'GRABFOOD' | 'FOODPANDA' | 'FB_CHATBOT';
+export const PLATFORMS: CanonicalPlatform[] = ['GRABFOOD', 'FOODPANDA', 'FB_CHATBOT'];
 
 export type CanonicalPaymentMethod = 'ONLINE_PAYMENT' | 'CASH_ON_DELIVERY';
 

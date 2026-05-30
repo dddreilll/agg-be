@@ -30,6 +30,15 @@ import {
 export class CatalogController {
   constructor(private readonly catalog: CatalogService) {}
 
+  // ── Stores ───────────────────────────────────────────────────────────────────
+
+  @Get('stores')
+  @ApiOperation({ summary: 'List active stores' })
+  @ApiResponse({ status: 200, description: 'Active store list.' })
+  listStores() {
+    return this.catalog.listStores();
+  }
+
   // ── Categories ──────────────────────────────────────────────────────────────
 
   @Get('categories')

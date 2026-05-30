@@ -16,6 +16,7 @@ export const productResponseSchema = z.object({
   id: z.string().uuid(),
   categoryId: z.string().uuid().nullable(),
   sku: z.string().nullable(),
+  productCode: z.string().max(16).nullable(),
   name: z.string(),
   description: z.string().nullable(),
   basePriceCents: z.number().int(),

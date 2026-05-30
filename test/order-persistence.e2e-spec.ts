@@ -12,7 +12,6 @@ import type { CanonicalOrder } from '../src/translation/canonical.types';
 // Seeded internal entities (see src/database/seed.ts) — satisfy the FK constraints.
 const STORE_ID = 'd3b07384-d113-4c4e-9c8e-a20468307d14';
 const PRODUCT_ID = 'a1af8342-9901-44bb-b1d3-3b2046801c11';
-const MODIFIER_ID = '7cc83411-fa02-4bb3-bc12-1a2046899e02';
 
 function makeCanonical(idempotencyKey: string): CanonicalOrder {
   return {
@@ -28,7 +27,7 @@ function makeCanonical(idempotencyKey: string): CanonicalOrder {
       internal_store_id: STORE_ID,
       status: 'PENDING_ACCEPTANCE',
       payment_method: 'CASH_ON_DELIVERY',
-      financials: { subtotal_cents: 2550, modifier_total_cents: 175, grand_total_cents: 2075 },
+      financials: { subtotal_cents: 2550, grand_total_cents: 2550 },
       items: [
         {
           internal_product_id: PRODUCT_ID,
@@ -36,13 +35,6 @@ function makeCanonical(idempotencyKey: string): CanonicalOrder {
           quantity: 1,
           unit_price_cents: 2550,
           notes: 'less sugar and chili',
-          customizations: [
-            {
-              internal_modifier_id: MODIFIER_ID,
-              modifier_name: 'Garlic Rice Upgrade',
-              added_price_cents: 175,
-            },
-          ],
         },
       ],
     },
@@ -70,27 +62,25 @@ describe('OrderPersistence (e2e)', () => {
   });
 
   afterAll(async () => {
-    await dataSource.getRepository(Order).delete({ idempotencyKey }); // cascades to items + modifiers
+    await dataSource.getRepository(Order).delete({ idempotencyKey }); // cascades to items
     await app.close();
   });
 
-  it('persists a canonical order with its items + modifiers', async () => {
+  it('persists a canonical order with its items', async () => {
     const result = await service.persist(makeCanonical(idempotencyKey), {
       source: 'integration-test',
     });
     expect(result.created).toBe(true);
-    expect(result.orderId).toBeDefined();
+    expect(result.order).toBeDefined();
 
     const order = await dataSource.getRepository(Order).findOne({
       where: { idempotencyKey },
-      relations: { items: { modifiers: true } },
+      relations: { items: true },
     });
     expect(order).not.toBeNull();
-    expect(order?.grandTotalCents).toBe(2075);
+    expect(order?.grandTotalCents).toBe(2550);
     expect(order?.items).toHaveLength(1);
     expect(order?.items[0].productName).toBe('1-pc Spicy Chicken Meal');
-    expect(order?.items[0].modifiers).toHaveLength(1);
-    expect(order?.items[0].modifiers[0].modifierName).toBe('Garlic Rice Upgrade');
   });
 
   it('is idempotent on idempotency_key (second persist is a no-op)', async () => {

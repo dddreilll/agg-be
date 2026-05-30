@@ -7,6 +7,7 @@ import { Product } from './entities/product.entity';
 import { Store } from './entities/store.entity';
 import { AddOrderShortIdAndUpdatedAt1779880000000 } from './migrations/1779880000000-AddOrderShortIdAndUpdatedAt';
 import { CreateOrders1779870000000 } from './migrations/1779870000000-CreateOrders';
+import { AddProductCode1779900000000 } from './migrations/1779900000000-AddProductCode';
 import { DropModifiers1779890000000 } from './migrations/1779890000000-DropModifiers';
 import { InitSchema1779860000000 } from './migrations/1779860000000-InitSchema';
 
@@ -26,7 +27,7 @@ export function dataSourceOptions(url: string): DataSourceOptions {
     type: 'postgres',
     url,
     entities: ENTITIES,
-    migrations: [InitSchema1779860000000, CreateOrders1779870000000, AddOrderShortIdAndUpdatedAt1779880000000, DropModifiers1779890000000],
+    migrations: [InitSchema1779860000000, CreateOrders1779870000000, AddOrderShortIdAndUpdatedAt1779880000000, DropModifiers1779890000000, AddProductCode1779900000000],
     synchronize: false,
   };
 }

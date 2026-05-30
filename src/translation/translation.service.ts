@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, NotImplementedException } from '@nestjs/common';
 import type { CanonicalOrder, TranslationMeta } from './canonical.types';
+import { fbChatbotOrderSchema } from './fb-chatbot.schema';
+import { translateFbChatbotOrder } from './fb-chatbot.translator';
 import { foodpandaOrderSchema } from './foodpanda.schema';
 import { translateFoodpandaOrder } from './foodpanda.translator';
 import { grabFoodOrderSchema } from './grabfood.schema';
@@ -30,6 +32,15 @@ export class TranslationService {
           );
         }
         return translateFoodpandaOrder(parsed.data, meta, this.resolver);
+      }
+      case 'FB_CHATBOT': {
+        const parsed = fbChatbotOrderSchema.safeParse(raw);
+        if (!parsed.success) {
+          throw new BadRequestException(
+            `Invalid FB_CHATBOT payload for translation: ${parsed.error.message}`,
+          );
+        }
+        return translateFbChatbotOrder(parsed.data, meta);
       }
       default:
         throw new NotImplementedException(`Translation for ${platform} is not implemented yet`);

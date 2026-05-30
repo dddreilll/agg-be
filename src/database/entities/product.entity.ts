@@ -11,6 +11,9 @@ export class Product {
   @Column({ type: 'varchar', length: 100, nullable: true, unique: true })
   sku!: string | null;
 
+  @Column({ name: 'product_code', type: 'varchar', length: 16, nullable: true, unique: true })
+  productCode!: string | null;
+
   @Column()
   name!: string;
 
