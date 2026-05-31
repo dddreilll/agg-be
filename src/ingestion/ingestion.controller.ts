@@ -4,6 +4,7 @@ import {
   Post,
   Req,
   Res,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -12,6 +13,7 @@ import { IngestionProducer } from '../queue/ingestion.producer';
 import { GrabFoodOrderDto } from './dto/grabfood-order.dto';
 import { AcceptedResponseDto, DuplicateResponseDto } from './dto/ingestion-responses.dto';
 import { IdempotencyInterceptor } from './idempotency.interceptor';
+import { WebhookAuthGuard } from './webhook-auth.guard';
 
 @ApiTags('Ingestion')
 @Controller('webhooks')
@@ -19,11 +21,12 @@ export class IngestionController {
   constructor(private readonly producer: IngestionProducer) {}
 
   /**
-   * Webhook front door. The interceptor has already validated the payload and run
-   * the idempotency guard, so this handler stays tiny: ack a duplicate (200), or
-   * enqueue and accept (202). Heavy work happens off the request thread.
+   * Webhook front door. The guard verifies the platform's auth token, then the
+   * interceptor validates the payload and runs the idempotency check.
+   * This handler stays tiny: ack a duplicate (200), or enqueue and accept (202).
    */
   @Post(':platform')
+  @UseGuards(WebhookAuthGuard)
   @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({
     summary: 'Ingest a delivery-platform order webhook',

@@ -47,14 +47,21 @@ Roughly in dependency order.
 
 ## 2. Robustness / correctness
 
-- [ ] **Inbound webhook signature verification (HMAC per platform)** —
-  security-critical. Anyone can currently POST a fake order to `/webhooks/{platform}`.
-- [ ] **Dead-letter handling for failed jobs** — translation failures (unknown
-  store/product, malformed payload) need a DLQ + inspection/retry, not silent loss.
-- [ ] **`readyz` should reflect Postgres too** — it only pings Redis today; a DB
-  outage reads as "ready."
-- [ ] **Idempotency fail-open review** — `IDEMPOTENCY_FAIL_OPEN=true` lets dupes
-  through on a Redis blip; confirm that trade-off and that the DB UNIQUE catches it.
+- [x] **Inbound webhook authentication per platform** —
+  GrabFood: Partner OAuth — Grab calls `POST /auth/grab-token` with client credentials, receives
+  an HMAC-SHA256-signed Bearer token, and includes it on every webhook call; guard verifies
+  signature + expiry. Foodpanda: static Bearer token (configured via Vendor Portal) compared
+  with `timingSafeEqual`. FB_CHATBOT bypassed (internal). Secrets are fail-open when unset
+  (dev), enforced in prod by setting the env vars.
+- [x] **Dead-letter handling for failed jobs** — BullMQ keeps failed jobs for 24 h
+  (configured via `removeOnFail`). `GET /dlq`, `GET /dlq/:id`, `POST /dlq/:id/retry`,
+  and `DELETE /dlq/:id` allow inspection and manual re-queue.
+- [x] **`readyz` reflects Postgres too** — now pings both Redis and Postgres with a
+  1 s timeout each; returns `{ redis, postgres }` fields and 503 if either is down.
+- [x] **Idempotency fail-open confirmed safe** — `IDEMPOTENCY_FAIL_OPEN=true` lets
+  orders through on a Redis blip; the `idempotency_key UNIQUE` constraint on the
+  `orders` table and the `PG_UNIQUE_VIOLATION` handler in `OrderPersistenceService`
+  prevent any duplicate from ever being persisted.
 
 ## 3. Scale / deployment architecture
 

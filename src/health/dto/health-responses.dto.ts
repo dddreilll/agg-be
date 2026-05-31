@@ -9,12 +9,14 @@ export const livenessResponseSchema = z.object({
 export const readinessResponseSchema = z.object({
   status: z.literal('ok'),
   redis: z.literal('up'),
+  postgres: z.literal('up'),
 });
 
 export const readinessErrorResponseSchema = z.object({
   status: z.literal('error'),
-  redis: z.literal('down'),
-  message: z.string().describe('Why the dependency is considered down.'),
+  redis: z.enum(['up', 'down']),
+  postgres: z.enum(['up', 'down']),
+  message: z.string().describe('Why a dependency is considered down.'),
 });
 
 export class LivenessResponseDto extends createZodDto(livenessResponseSchema) {}

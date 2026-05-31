@@ -29,6 +29,18 @@ export const envSchema = z.object({
 
   WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5),
 
+  // GrabFood partner OAuth — used by POST /auth/grab-token and the GrabFood webhook guard.
+  // If unset, GrabFood webhook auth is skipped (fail-open, for local dev).
+  GRABFOOD_CLIENT_ID: z.string().min(1).optional(),
+  GRABFOOD_CLIENT_SECRET: z.string().min(1).optional(),
+  // Secret used to HMAC-sign the Bearer tokens we issue to GrabFood.
+  GRABFOOD_TOKEN_SECRET: z.string().min(16).optional(),
+  GRABFOOD_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+
+  // Foodpanda webhook guard — static Bearer token Foodpanda sends on every dispatch call.
+  // Configured in the Foodpanda Vendor Portal. If unset, verification is skipped.
+  FOODPANDA_WEBHOOK_SECRET: z.string().min(1).optional(),
+
   // Optional: required only when the /parse endpoint is called.
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-2.0-flash'),
