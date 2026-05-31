@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { MetricsService } from '../metrics/metrics.service';
 import { IngestionProducer } from '../queue/ingestion.producer';
 import { GrabFoodOrderDto } from './dto/grabfood-order.dto';
 import { AcceptedResponseDto, DuplicateResponseDto } from './dto/ingestion-responses.dto';
@@ -18,7 +19,10 @@ import { WebhookAuthGuard } from './webhook-auth.guard';
 @ApiTags('Ingestion')
 @Controller('webhooks')
 export class IngestionController {
-  constructor(private readonly producer: IngestionProducer) {}
+  constructor(
+    private readonly producer: IngestionProducer,
+    private readonly metrics: MetricsService,
+  ) {}
 
   /**
    * Webhook front door. The guard verifies the platform's auth token, then the
@@ -111,6 +115,7 @@ export class IngestionController {
     description: 'Idempotency store unavailable (only when IDEMPOTENCY_FAIL_OPEN=false).',
   })
   async ingest(@Req() req: Request, @Res() res: Response): Promise<void> {
+    const start = process.hrtime.bigint();
     const parsed = req.parsedWebhook!;
 
     if (req.duplicate) {
@@ -118,6 +123,9 @@ export class IngestionController {
         status: 'duplicate',
         idempotencyKey: parsed.dedupeKey,
       });
+      this.metrics.ackDuration.labels(parsed.platform, 'duplicate').observe(
+        Number(process.hrtime.bigint() - start) / 1e9,
+      );
       return;
     }
 
@@ -135,5 +143,8 @@ export class IngestionController {
       idempotencyKey: parsed.dedupeKey,
       jobId,
     });
+    this.metrics.ackDuration.labels(parsed.platform, 'accepted').observe(
+      Number(process.hrtime.bigint() - start) / 1e9,
+    );
   }
 }

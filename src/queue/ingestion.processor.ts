@@ -3,6 +3,7 @@ import { Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type Job } from 'bullmq';
 import type { Env } from '../config/env.validation';
+import { MetricsService } from '../metrics/metrics.service';
 import { OrderPersistenceService } from '../orders/order-persistence.service';
 import { KitchenGateway } from '../realtime/kitchen.gateway';
 import { TranslationService } from '../translation/translation.service';
@@ -24,6 +25,7 @@ export class IngestionProcessor
     private readonly translation: TranslationService,
     private readonly orders: OrderPersistenceService,
     private readonly kitchen: KitchenGateway,
+    private readonly metrics: MetricsService,
   ) {
     super();
   }
@@ -36,6 +38,7 @@ export class IngestionProcessor
   }
 
   async process(job: Job<IngestionJobData>): Promise<void> {
+    const start = process.hrtime.bigint();
     const { platform, orderId, dedupeKey, receivedAt, raw } = job.data;
     this.logger.log(`processing ${platform} order ${orderId} (job ${job.id}, key ${dedupeKey})`);
 
@@ -62,6 +65,8 @@ export class IngestionProcessor
     } else {
       this.logger.log(`order ${dedupeKey} already persisted — skipped (no re-broadcast)`);
     }
+
+    this.metrics.jobDuration.observe(Number(process.hrtime.bigint() - start) / 1e9);
   }
 
   @OnWorkerEvent('completed')

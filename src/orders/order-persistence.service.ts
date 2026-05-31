@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
+import { OrderEvent } from '../database/entities/order-event.entity';
 import { Order } from '../database/entities/order.entity';
 import type { CanonicalOrder } from '../translation/canonical.types';
 
@@ -15,7 +16,10 @@ export interface PersistResult {
 export class OrderPersistenceService {
   private readonly logger = new Logger(OrderPersistenceService.name);
 
-  constructor(@InjectRepository(Order) private readonly orders: Repository<Order>) {}
+  constructor(
+    @InjectRepository(Order) private readonly orders: Repository<Order>,
+    @InjectRepository(OrderEvent) private readonly events: Repository<OrderEvent>,
+  ) {}
 
   /**
    * Persist a canonical order with its items in one cascaded insert.
@@ -50,6 +54,14 @@ export class OrderPersistenceService {
     try {
       const saved = await this.orders.save(order);
       this.logger.log(`persisted order ${saved.id} (${order.idempotencyKey})`);
+      await this.events.save(
+        this.events.create({
+          orderId: saved.id,
+          eventType: 'order.created',
+          newStatus: saved.status,
+          metadata: { platform: saved.platform, externalOrderId: saved.externalOrderId },
+        }),
+      );
       return { created: true, order: saved };
     } catch (err) {
       if (

@@ -80,15 +80,26 @@ Roughly in dependency order.
 
 ## 4. Observability
 
-- [ ] **Metrics** — queue depth, processing latency, ack time, broadcast lag — plus
-  request tracing. Structured logging (pino) exists; dashboards/alerts don't.
-- [ ] **Load-test the <200ms ack guarantee** under realistic burst.
+- [x] **Metrics** — `prom-client` exposes `GET /metrics` (Prometheus). Gauges: queue depth
+  by state (refreshed every 15 s by `QueueDepthCollector`). Histograms: `webhook_ack_duration_seconds`
+  (per platform + result), `ingestion_job_duration_seconds`. Counters: `kitchen_broadcast_order_total`,
+  `kitchen_broadcast_status_total`. Default Node.js process metrics included.
+  Request correlation IDs already wired via pino-http `genReqId` + `x-request-id` header.
+- [x] **Load-test the <200ms ack guarantee** — k6 script at `test/load/ack-latency.js`.
+  Ramps to 50 VUs; asserts p99 < 200 ms and p95 < 100 ms.
 
 ## 5. Data & multi-tenancy
 
-- [ ] **Order event/audit log** — append-only state-transition history.
-- [ ] **Merchant/store onboarding & `platform_mappings` management** — hand-seeded today.
-- [ ] **Retention / archival** of old orders.
+- [x] **Order event/audit log** — `order_events` table (migration `1779910000000`). Events
+  emitted on `order.created` (from `OrderPersistenceService`) and `order.status_changed`
+  (from `OrdersQueryService.updateStatus`). Read via `GET /orders/:id/events`.
+- [x] **Merchant/store onboarding & `platform_mappings` management** — `StoresModule`
+  provides full CRUD: `GET/POST /stores`, `GET/PATCH/DELETE /stores/:id`, and
+  `GET/POST/PATCH/DELETE /stores/:id/mappings` for platform mapping management.
+- [x] **Retention / archival** — `MaintenanceModule` + `OrderRetentionService` (nightly cron).
+  `ORDER_RETENTION_DAYS` (default 90): soft-archives completed/cancelled orders.
+  `ORDER_ARCHIVE_DAYS` (default 365): hard-deletes archived orders. `GET /orders` excludes
+  archived orders. Migration `1779920000000` adds `archived_at` column.
 
 ## Suggested sequence
 

@@ -10,6 +10,7 @@ import { DlqController } from './dlq.controller';
 import { IngestionProcessor } from './ingestion.processor';
 import { IngestionProducer } from './ingestion.producer';
 import { INGESTION_QUEUE } from './jobs';
+import { QueueDepthCollector } from './queue-depth.collector';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { INGESTION_QUEUE } from './jobs';
     RealtimeModule,
   ],
   controllers: [DlqController],
-  providers: [IngestionProducer, IngestionProcessor],
+  providers: [IngestionProducer, IngestionProcessor, QueueDepthCollector],
   exports: [IngestionProducer],
 })
 export class QueueModule {}

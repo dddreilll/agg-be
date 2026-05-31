@@ -44,6 +44,11 @@ export const envSchema = z.object({
   // Configured in the Foodpanda Vendor Portal. If unset, verification is skipped.
   FOODPANDA_WEBHOOK_SECRET: z.string().min(1).optional(),
 
+  // Retention: completed/cancelled orders older than this are soft-archived (default 90 days).
+  ORDER_RETENTION_DAYS: z.coerce.number().int().positive().default(90),
+  // Purge: archived orders older than this are hard-deleted (default 365 days).
+  ORDER_ARCHIVE_DAYS: z.coerce.number().int().positive().default(365),
+
   // Optional: required only when the /parse endpoint is called.
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-2.0-flash'),

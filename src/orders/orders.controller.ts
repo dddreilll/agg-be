@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { OrderEvent } from '../database/entities/order-event.entity';
 import { OutboundDispatchService } from '../outbound/outbound-dispatch.service';
 import { KitchenGateway } from '../realtime/kitchen.gateway';
 import { ListOrdersDto } from './dto/list-orders.dto';
@@ -38,6 +39,15 @@ export class OrdersController {
   async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<OrderResponseDto> {
     const order = await this.query.findOne(id);
     return serializeOrder(order) as OrderResponseDto;
+  }
+
+  @Get(':id/events')
+  @ApiOperation({ summary: 'Get audit trail for an order', description: 'Returns the append-only event log for the order (created, status changes, etc.).' })
+  @ApiParam({ name: 'id', description: 'Order UUID' })
+  @ApiResponse({ status: 200, description: 'Event list.', type: [OrderEvent] })
+  @ApiResponse({ status: 404, description: 'Order not found.' })
+  async listEvents(@Param('id', ParseUUIDPipe) id: string): Promise<OrderEvent[]> {
+    return this.query.findEvents(id);
   }
 
   @Patch(':id/status')

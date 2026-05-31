@@ -48,6 +48,10 @@ export class Order {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt!: Date;
 
+  /** Set when the order is soft-archived by the retention job. Null means active. */
+  @Column({ name: 'archived_at', type: 'timestamptz', nullable: true, default: null })
+  archivedAt!: Date | null;
+
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   items!: OrderItem[];
 }

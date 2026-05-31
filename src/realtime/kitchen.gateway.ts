@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Inject, Logger, Optional } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -11,6 +11,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Order } from '../database/entities/order.entity';
+import { MetricsService } from '../metrics/metrics.service';
 import { serializeOrder } from '../orders/dto/order-response.dto';
 
 /** Kitchen displays subscribe per store; orders are emitted only to that store's room. */
@@ -20,6 +21,8 @@ const storeRoom = (storeId: string): string => `store:${storeId}`;
 export class KitchenGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() private readonly server!: Server;
   private readonly logger = new Logger(KitchenGateway.name);
+
+  constructor(@Optional() @Inject(MetricsService) private readonly metrics?: MetricsService) {}
 
   /** A display may pass its store via the handshake (?storeId= or auth.storeId) to auto-join. */
   handleConnection(client: Socket): void {
@@ -59,6 +62,7 @@ export class KitchenGateway implements OnGatewayConnection, OnGatewayDisconnect 
     const room = storeRoom(order.storeId);
     this.server.to(room).emit('order.incoming', serializeOrder(order));
     this.logger.log(`broadcast order ${order.id} → ${room}`);
+    this.metrics?.broadcastOrderTotal.inc();
   }
 
   /** Notify kitchen displays that an order's status changed. */
@@ -66,6 +70,7 @@ export class KitchenGateway implements OnGatewayConnection, OnGatewayDisconnect 
     const room = storeRoom(storeId);
     this.server.to(room).emit('order.status_updated', { orderId, status });
     this.logger.log(`broadcast status_updated order ${orderId} → ${status} (${room})`);
+    this.metrics?.broadcastStatusTotal.inc();
   }
 
   private storeIdFromHandshake(client: Socket): string | undefined {

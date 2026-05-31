@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { OrderEvent } from '../database/entities/order-event.entity';
 import { OrderItem } from '../database/entities/order-item.entity';
 import { Order } from '../database/entities/order.entity';
 import { OutboundModule } from '../outbound/outbound.module';
@@ -9,7 +10,7 @@ import { OrdersController } from './orders.controller';
 import { OrdersQueryService } from './orders-query.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, OrderItem]), RealtimeModule, OutboundModule],
+  imports: [TypeOrmModule.forFeature([Order, OrderItem, OrderEvent]), RealtimeModule, OutboundModule],
   controllers: [OrdersController],
   providers: [OrderPersistenceService, OrdersQueryService],
   exports: [OrderPersistenceService, OrdersQueryService],

@@ -6,12 +6,15 @@ import { LoggerModule } from 'nestjs-pino';
 import { type Env, validateEnv } from './config/env.validation';
 import { CatalogModule } from './catalog/catalog.module';
 import { DatabaseModule } from './database/database.module';
-import { ParserModule } from './parser/parser.module';
 import { HealthModule } from './health/health.module';
 import { IngestionModule } from './ingestion/ingestion.module';
+import { MaintenanceModule } from './maintenance/maintenance.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { OrdersModule } from './orders/orders.module';
+import { ParserModule } from './parser/parser.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { RedisModule } from './redis/redis.module';
+import { StoresModule } from './stores/stores.module';
 
 @Module({
   imports: [
@@ -38,14 +41,17 @@ import { RedisModule } from './redis/redis.module';
         },
       }),
     }),
+    MetricsModule,
     DatabaseModule,
     RedisModule,
     RealtimeModule,
     IngestionModule,
     OrdersModule,
+    StoresModule,
     CatalogModule,
     ParserModule,
     HealthModule,
+    MaintenanceModule,
   ],
 })
 export class AppModule {}
