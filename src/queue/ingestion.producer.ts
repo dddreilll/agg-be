@@ -1,16 +1,34 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
+import type { Env } from '../config/env.validation';
 import { INGEST_ORDER_JOB, INGESTION_QUEUE, type IngestionJobData } from './jobs';
 
 @Injectable()
 export class IngestionProducer {
   private readonly logger = new Logger(IngestionProducer.name);
 
-  constructor(@InjectQueue(INGESTION_QUEUE) private readonly queue: Queue<IngestionJobData>) {}
+  constructor(
+    @InjectQueue(INGESTION_QUEUE) private readonly queue: Queue<IngestionJobData>,
+    private readonly config: ConfigService<Env, true>,
+  ) {}
 
   /** Offload an accepted webhook for async processing. Returns the BullMQ job id. */
   async enqueue(data: IngestionJobData): Promise<string> {
+    // Backpressure: shed load when the queue is too deep so the platform retries later
+    // rather than piling up unbounded work in Redis.
+    const maxDepth = this.config.get('INGESTION_QUEUE_MAX_DEPTH', { infer: true });
+    if (maxDepth !== undefined) {
+      const waiting = await this.queue.getWaitingCount();
+      if (waiting >= maxDepth) {
+        this.logger.warn(`queue at capacity (${waiting}/${maxDepth} waiting) — shedding load`);
+        throw new ServiceUnavailableException(
+          `Ingestion queue at capacity (${waiting} waiting). Retry later.`,
+        );
+      }
+    }
+
     // BullMQ forbids ':' in custom job ids (it namespaces its own Redis keys with it),
     // so the dedupe key's canonical "platform:order" form is sanitized here only.
     const jobId = data.dedupeKey.replace(/:/g, '_');

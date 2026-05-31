@@ -28,6 +28,9 @@ export const envSchema = z.object({
   IDEMPOTENCY_FAIL_OPEN: booleanFromEnv(true),
 
   WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5),
+  // Maximum number of waiting jobs before the ingestion endpoint starts shedding load (503).
+  // Unset (default) means unbounded — platforms with reliable retry should set this.
+  INGESTION_QUEUE_MAX_DEPTH: z.coerce.number().int().positive().optional(),
 
   // GrabFood partner OAuth — used by POST /auth/grab-token and the GrabFood webhook guard.
   // If unset, GrabFood webhook auth is skipped (fail-open, for local dev).

@@ -44,6 +44,20 @@ export function createAppRedisClient(url: string): Redis {
 }
 
 /**
+ * Two dedicated ioredis clients for Socket.io's Redis pub/sub adapter.
+ * Must be separate connections: the subscriber is put in subscribe-only mode
+ * and cannot issue other commands.
+ */
+export function createSocketIoRedisClients(url: string): { pub: Redis; sub: Redis } {
+  const shared: RedisOptions = { ...RESILIENCE_POLICY, maxRetriesPerRequest: null };
+  const pub = new Redis(url, { ...shared, connectionName: 'dops-socketio-pub' });
+  const sub = new Redis(url, { ...shared, connectionName: 'dops-socketio-sub' });
+  attachLifecycleLogging(pub, 'socketio-pub');
+  attachLifecycleLogging(sub, 'socketio-sub');
+  return { pub, sub };
+}
+
+/**
  * BullMQ connection options. BullMQ manages its own (blocking) connections and
  * *requires* `maxRetriesPerRequest: null`, so it gets a separate config built from
  * the same resilience policy.

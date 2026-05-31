@@ -55,18 +55,32 @@ export class DlqController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'List failed ingestion jobs' })
+  @ApiOperation({
+    summary: 'List failed ingestion jobs with queue-wide health counts',
+    description:
+      'Returns waiting/active/delayed/failed counts for at-a-glance queue health, ' +
+      'plus a paginated list of failed (dead-letter) jobs.',
+  })
   @ApiQuery({ name: 'start', required: false, example: 0 })
   @ApiQuery({ name: 'end', required: false, example: 19 })
-  @ApiResponse({ status: 200, description: 'Paginated list of failed jobs.' })
+  @ApiResponse({ status: 200, description: 'Queue stats + paginated list of failed jobs.' })
   async list(@Query('start') startQ?: string, @Query('end') endQ?: string) {
     const start = Math.max(0, parseInt(startQ ?? '0', 10) || 0);
     const end = Math.max(start, parseInt(endQ ?? '19', 10) || 19);
-    const [jobs, total] = await Promise.all([
+    const [jobs, waiting, active, delayed, failed] = await Promise.all([
       this.queue.getFailed(start, end),
+      this.queue.getWaitingCount(),
+      this.queue.getActiveCount(),
+      this.queue.getDelayedCount(),
       this.queue.getFailedCount(),
     ]);
-    return { total, start, end, jobs: jobs.map(toDto) };
+    return {
+      queue: { waiting, active, delayed, failed },
+      total: failed,
+      start,
+      end,
+      jobs: jobs.map(toDto),
+    };
   }
 
   @Get(':jobId')

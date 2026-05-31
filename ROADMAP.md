@@ -65,10 +65,18 @@ Roughly in dependency order.
 
 ## 3. Scale / deployment architecture
 
-- [ ] **Socket.io Redis adapter** — WS rooms are in-memory, so with >1 instance a
-  broadcast only reaches clients on the same node. Needed before horizontal scaling.
-- [ ] **Containerize the app + prod compose / CI-CD.**
-- [ ] **Multi-worker / concurrency tuning + backpressure** under burst.
+- [x] **Socket.io Redis adapter** — `RedisIoAdapter` replaces the in-memory `IoAdapter`.
+  Two dedicated ioredis pub/sub connections (sharing the resilience policy from
+  `redis.factory.ts`) are created at boot and wired into the Socket.io server so
+  room broadcasts reach clients on every app instance.
+- [x] **Containerize the app + prod compose / CI-CD** — multi-stage `Dockerfile`
+  (builder → lean production image, non-root user). `docker-compose.yml` gained an
+  `app` service with `depends_on` health-gate on Redis and Postgres.
+  `.github/workflows/ci.yml`: type-check → unit tests → Docker build on every push.
+- [x] **Backpressure under burst** — `INGESTION_QUEUE_MAX_DEPTH` (optional env var):
+  producer checks waiting-job count before enqueuing and returns 503 when over limit
+  so platforms retry later instead of piling up unbounded work. `GET /dlq` now also
+  returns `queue.{ waiting, active, delayed, failed }` counts for at-a-glance health.
 
 ## 4. Observability
 

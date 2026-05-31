@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Logger as NestLogger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { IoAdapter } from '@nestjs/platform-socket.io';
+import { RedisIoAdapter } from './realtime/redis-io.adapter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { cleanupOpenApiDoc, ZodValidationPipe } from 'nestjs-zod';
@@ -48,16 +48,20 @@ async function bootstrap(): Promise<void> {
   // Scalar API reference UI. Mounted before helmet so its CDN/inline assets aren't CSP-blocked.
   app.use('/reference', apiReference({ content: openApiDocument }));
 
+  const config = app.get(ConfigService<Env, true>);
+
   app.useGlobalPipes(new ZodValidationPipe());
   app.use(helmet());
-  app.useWebSocketAdapter(new IoAdapter(app));
+
+  const redisIoAdapter = new RedisIoAdapter(app, config.get('REDIS_URL', { infer: true }));
+  await redisIoAdapter.connectToRedis();
+  app.useWebSocketAdapter(redisIoAdapter);
+
   app.useGlobalFilters(new AllExceptionsFilter());
   // Fire lifecycle hooks (RedisModule.onApplicationShutdown, BullMQ close) on SIGTERM/SIGINT.
   app.enableShutdownHooks();
-  // Enable CORS using `CORS_ORIGIN` (env) or allow all origins by default.
-  const config = app.get(ConfigService<Env, true>);
   app.enableCors({
-    origin: "*",
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
